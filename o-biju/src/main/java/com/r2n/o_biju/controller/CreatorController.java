@@ -2,6 +2,7 @@ package com.r2n.o_biju.controller;
 
 import com.r2n.o_biju.dto.CreatorDTO;
 import com.r2n.o_biju.dto.CreatorProfileDTO;
+import com.r2n.o_biju.dto.ImageUploadDTO;
 import com.r2n.o_biju.dto.LoginRequestDTO;
 import com.r2n.o_biju.service.CreatorService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -116,5 +117,14 @@ public class CreatorController {
     public ResponseEntity<List<CreatorProfileDTO>> getAllCreators() {
         List<CreatorProfileDTO> creators = creatorService.getAllCreators();
         return ResponseEntity.ok(creators);
+    }
+
+    @PutMapping("/{id}/profile-picture")
+    @Operation(summary = "Update creator profile picture", description = "Update the profile picture for a creator")
+    @ApiResponse(responseCode = "200", description = "Profile picture updated successfully")
+    public ResponseEntity<Boolean> updateProfilePicture(
+            @PathVariable Long id,
+            @RequestParam String imageUrl) {
+        return ResponseEntity.ok(creatorService.updateProfilePicture(id, imageUrl));
     }
 } 

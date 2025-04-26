@@ -97,4 +97,13 @@ public class ProductController {
         List<ProductSummaryDTO> products = productService.getUserProducts(creatorId);
         return ResponseEntity.ok(products);
     }
+
+    @PutMapping("/{id}/images")
+    @Operation(summary = "Add image to product", description = "Add an image to a product's image list")
+    @ApiResponse(responseCode = "200", description = "Image added successfully")
+    public ResponseEntity<Boolean> addProductImage(
+            @PathVariable Long id,
+            @RequestParam String imageUrl) {
+        return ResponseEntity.ok(productService.addProductImage(id, imageUrl));
+    }
 } 

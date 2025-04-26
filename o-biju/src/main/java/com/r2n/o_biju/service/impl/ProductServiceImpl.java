@@ -81,6 +81,22 @@ public class ProductServiceImpl implements ProductService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional
+    public boolean addProductImage(Long productId, String imageUrl) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));
+        
+        if (product.getImages() == null) {
+            product.setImages(List.of(imageUrl));
+        } else {
+            product.getImages().add(imageUrl);
+        }
+        
+        productRepository.save(product);
+        return true;
+    }
+
     private ProductSummaryDTO mapToSummaryDTO(Product product) {
         ProductSummaryDTO summaryDTO = new ProductSummaryDTO();
         summaryDTO.setId(product.getId());

@@ -11,4 +11,12 @@ public interface ProductService {
     ProductDTO getProduct(Long id);
     List<ProductSummaryDTO> getAllProducts();
     List<ProductSummaryDTO> getUserProducts(Long creatorId);
+    
+    /**
+     * Adds an image URL to a product's images list
+     * @param productId The ID of the product
+     * @param imageUrl The URL of the image to add
+     * @return true if added successfully, false otherwise
+     */
+    boolean addProductImage(Long productId, String imageUrl);
 } 

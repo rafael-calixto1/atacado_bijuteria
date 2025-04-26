@@ -12,4 +12,12 @@ public interface CreatorService {
     CreatorDTO getCreatorData(Long id);
     CreatorProfileDTO getCreatorProfile(Long id);
     List<CreatorProfileDTO> getAllCreators();
+    
+    /**
+     * Updates the profile picture URL for a creator
+     * @param creatorId The ID of the creator
+     * @param imageUrl The URL of the profile picture
+     * @return true if updated successfully, false otherwise
+     */
+    boolean updateProfilePicture(Long creatorId, String imageUrl);
 } 

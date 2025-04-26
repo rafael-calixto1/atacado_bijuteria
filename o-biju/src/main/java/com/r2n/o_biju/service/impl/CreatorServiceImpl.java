@@ -121,6 +121,18 @@ public class CreatorServiceImpl implements CreatorService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional
+    public boolean updateProfilePicture(Long creatorId, String imageUrl) {
+        Creator creator = creatorRepository.findById(creatorId)
+                .orElseThrow(() -> new EntityNotFoundException("Creator not found with id: " + creatorId));
+        
+        creator.setProfilePicture(imageUrl);
+        creatorRepository.save(creator);
+        
+        return true;
+    }
+
     private CreatorProfileDTO mapToProfileDTO(Creator creator) {
         CreatorProfileDTO profileDTO = new CreatorProfileDTO();
         profileDTO.setId(creator.getId());
