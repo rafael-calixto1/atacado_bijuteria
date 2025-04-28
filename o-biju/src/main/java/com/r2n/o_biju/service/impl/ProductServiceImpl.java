@@ -9,6 +9,8 @@ import com.r2n.o_biju.repository.ProductRepository;
 import com.r2n.o_biju.service.ProductService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,17 +70,15 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductSummaryDTO> getAllProducts() {
-        return productRepository.findAll().stream()
-                .map(this::mapToSummaryDTO)
-                .collect(Collectors.toList());
+    public Page<ProductSummaryDTO> getAllProducts(Pageable pageable) {
+        return productRepository.findAll(pageable)
+                .map(this::mapToSummaryDTO);
     }
 
     @Override
-    public List<ProductSummaryDTO> getUserProducts(Long creatorId) {
-        return productRepository.findByCreatorId(creatorId).stream()
-                .map(this::mapToSummaryDTO)
-                .collect(Collectors.toList());
+    public Page<ProductSummaryDTO> getUserProducts(Long creatorId, Pageable pageable) {
+        return productRepository.findByCreatorId(creatorId, pageable)
+                .map(this::mapToSummaryDTO);
     }
 
     @Override
