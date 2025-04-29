@@ -2,6 +2,7 @@ package com.r2n.o_biju.service.impl;
 
 import com.r2n.o_biju.dto.CreatorDTO;
 import com.r2n.o_biju.dto.CreatorProfileDTO;
+import com.r2n.o_biju.exception.CreatorException;
 import com.r2n.o_biju.model.Creator;
 import com.r2n.o_biju.repository.CreatorRepository;
 import com.r2n.o_biju.service.CreatorService;
@@ -22,32 +23,107 @@ public class CreatorServiceImpl implements CreatorService {
     @Override
     @Transactional
     public boolean createCreator(CreatorDTO creatorDTO) {
+        // Validate email uniqueness
         if (creatorRepository.existsByEmail(creatorDTO.getEmail())) {
-            return false;
+            throw new CreatorException(
+                "EMAIL_ALREADY_EXISTS",
+                "A creator with this email already exists"
+            );
         }
 
-        Creator creator = new Creator();
-        creator.setFirstName(creatorDTO.getFirstName());
-        creator.setLastName(creatorDTO.getLastName());
-        creator.setBirthDate(creatorDTO.getBirthDate());
-        creator.setEmail(creatorDTO.getEmail());
-        creator.setPhone(creatorDTO.getPhone());
-        creator.setPassword(creatorDTO.getPassword());
-        creator.setProfilePicture(creatorDTO.getProfilePicture());
+        try {
+            Creator creator = new Creator();
+            creator.setFirstName(creatorDTO.getFirstName());
+            creator.setLastName(creatorDTO.getLastName());
+            creator.setBirthDate(creatorDTO.getBirthDate());
+            creator.setEmail(creatorDTO.getEmail());
+            creator.setPhone(creatorDTO.getPhone());
+            creator.setPassword(creatorDTO.getPassword());
+            creator.setProfilePicture(creatorDTO.getProfilePicture());
 
-        creatorRepository.save(creator);
-        return true;
+            creatorRepository.save(creator);
+            return true;
+        } catch (Exception e) {
+            throw new CreatorException(
+                "CREATOR_CREATION_FAILED",
+                "Failed to create creator: " + e.getMessage()
+            );
+        }
     }
 
     @Override
     public CreatorDTO loginCreator(String email, String password) {
-        Creator creator = creatorRepository.findByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException("Creator not found with email: " + email));
+        try {
+            Creator creator = creatorRepository.findByEmail(email)
+                    .orElseThrow(() -> new CreatorException(
+                        "INVALID_CREDENTIALS",
+                        "Invalid email or password"
+                    ));
 
-        if (!creator.getPassword().equals(password)) {
-            throw new IllegalArgumentException("Invalid password");
+            if (!creator.getPassword().equals(password)) {
+                throw new CreatorException(
+                    "INVALID_CREDENTIALS",
+                    "Invalid email or password"
+                );
+            }
+
+            return mapToDTO(creator);
+        } catch (Exception e) {
+            if (e instanceof CreatorException) {
+                throw e;
+            }
+            throw new CreatorException(
+                "LOGIN_FAILED",
+                "Failed to login: " + e.getMessage()
+            );
         }
+    }
 
+    @Override
+    @Transactional
+    public CreatorDTO updateCreator(CreatorDTO creatorDTO) {
+        try {
+            Creator creator = creatorRepository.findById(creatorDTO.getId())
+                    .orElseThrow(() -> new CreatorException(
+                        "CREATOR_NOT_FOUND",
+                        "Creator not found with id: " + creatorDTO.getId()
+                    ));
+
+            // Check if new email is already taken by another creator
+            if (!creator.getEmail().equals(creatorDTO.getEmail()) && 
+                creatorRepository.existsByEmail(creatorDTO.getEmail())) {
+                throw new CreatorException(
+                    "EMAIL_ALREADY_EXISTS",
+                    "A creator with this email already exists"
+                );
+            }
+
+            creator.setFirstName(creatorDTO.getFirstName());
+            creator.setLastName(creatorDTO.getLastName());
+            creator.setBirthDate(creatorDTO.getBirthDate());
+            creator.setPhone(creatorDTO.getPhone());
+            creator.setEmail(creatorDTO.getEmail());
+            if (creatorDTO.getPassword() != null && !creatorDTO.getPassword().isEmpty()) {
+                creator.setPassword(creatorDTO.getPassword());
+            }
+            if (creatorDTO.getProfilePicture() != null) {
+                creator.setProfilePicture(creatorDTO.getProfilePicture());
+            }
+
+            creator = creatorRepository.save(creator);
+            return mapToDTO(creator);
+        } catch (Exception e) {
+            if (e instanceof CreatorException) {
+                throw e;
+            }
+            throw new CreatorException(
+                "UPDATE_FAILED",
+                "Failed to update creator: " + e.getMessage()
+            );
+        }
+    }
+
+    private CreatorDTO mapToDTO(Creator creator) {
         CreatorDTO creatorDTO = new CreatorDTO();
         creatorDTO.setId(creator.getId());
         creatorDTO.setFirstName(creator.getFirstName());
@@ -55,39 +131,7 @@ public class CreatorServiceImpl implements CreatorService {
         creatorDTO.setBirthDate(creator.getBirthDate());
         creatorDTO.setPhone(creator.getPhone());
         creatorDTO.setProfilePicture(creator.getProfilePicture());
-
         return creatorDTO;
-    }
-
-    @Override
-    @Transactional
-    public CreatorDTO updateCreator(CreatorDTO creatorDTO) {
-        Creator creator = creatorRepository.findById(creatorDTO.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Creator not found with id: " + creatorDTO.getId()));
-
-        creator.setFirstName(creatorDTO.getFirstName());
-        creator.setLastName(creatorDTO.getLastName());
-        creator.setBirthDate(creatorDTO.getBirthDate());
-        creator.setPhone(creatorDTO.getPhone());
-        creator.setEmail(creatorDTO.getEmail());
-        if (creatorDTO.getPassword() != null && !creatorDTO.getPassword().isEmpty()) {
-            creator.setPassword(creatorDTO.getPassword());
-        }
-        if (creatorDTO.getProfilePicture() != null) {
-            creator.setProfilePicture(creatorDTO.getProfilePicture());
-        }
-
-        creator = creatorRepository.save(creator);
-
-        CreatorDTO updatedCreatorDTO = new CreatorDTO();
-        updatedCreatorDTO.setId(creator.getId());
-        updatedCreatorDTO.setFirstName(creator.getFirstName());
-        updatedCreatorDTO.setLastName(creator.getLastName());
-        updatedCreatorDTO.setBirthDate(creator.getBirthDate());
-        updatedCreatorDTO.setPhone(creator.getPhone());
-        updatedCreatorDTO.setProfilePicture(creator.getProfilePicture());
-
-        return updatedCreatorDTO;
     }
 
     @Override
